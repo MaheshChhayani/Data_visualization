@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<title>Mahesh Chhayani</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<style>
+body,h1,h2,h3,h4,h5,h6 {font-family: "Lato", sans-serif}
+.w3-bar,h1,button {font-family: "Montserrat", sans-serif}
+.fa-anchor,.fa-coffee {font-size:200px}
+    #my_dataviz {
+        padding-top: 90px;
+        padding-left: 50px;
+    }
+    .link {
+        stroke: #93C464;
+      }
+      marker {
+        fill: #93C464;
+      }
+</style>
+<!-- Load d3.js -->
+<script src="https://d3js.org/d3.v4.js"></script>
+<body>
+
+<!-- Navbar -->
+<div class="w3-top">
+  <div class="w3-bar w3-red w3-card w3-left-align w3-large">
+    <a class="w3-bar-item w3-button w3-hide-medium w3-hide-large w3-right w3-padding-large w3-hover-white w3-large w3-red" href="javascript:void(0);" onclick="myFunction()" title="Toggle Navigation Menu"><i class="fa fa-bars"></i></a>
+     <a href="../home.html" class="w3-bar-item w3-button w3-padding-large w3-white">Home</a>
+    <a href="../barchart/barchart.html" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">BarChart</a>
+    <a href="network.html" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Network</a>
+    <a href="../histogram/histogram.html" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Histogram</a>
+    <a href="../scatterplot/scatterplot.html" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Scatterplot</a>
+    <a href="../worldmap/worldmap.html" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">World Map</a>
+  </div>
+
+  <!-- Navbar on small screens -->
+  <div id="navDemo" class="w3-bar-block w3-white w3-hide w3-hide-large w3-hide-medium w3-large">
+    <a href="#" class="w3-bar-item w3-button w3-padding-large">BarChart</a>
+    <a href="#" class="w3-bar-item w3-button w3-padding-large">Network</a>
+    <a href="#" class="w3-bar-item w3-button w3-padding-large">Histogram</a>
+    <a href="#" class="w3-bar-item w3-button w3-padding-large">Scatterplot</a>
+    <a href="#" class="w3-bar-item w3-button w3-padding-large">World Map</a>
+  </div>
+</div>
+
+<!-- D3 code -->
+
+<div id="my_dataviz">
+      <svg style="width:800px;height:600px;" ></svg>
+    </div>
+    <script>
+      var roleScale = d3.scaleOrdinal()
+        .domain(["contractor", "employee", "manager"])
+        .range(["#75739F", "#41A368", "#FE9922"]);
+      
+      var PromiseWrapper = d => new Promise(resolve => d3.csv(d, p => resolve(p)));
+      
+      Promise
+        .all([
+          PromiseWrapper("nodelist.csv"),
+          PromiseWrapper("edgelist.csv")
+        ])
+        .then(resolve => {
+          createForceLayout(resolve[0], resolve[1]);
+        });
+      
+      function createForceLayout(nodes,edges) {
+    
+        
+        var nodeHash = {};
+        nodes.forEach(node => {
+          nodeHash[node.id] = node;
+        });
+        
+        edges.forEach(edge => {
+          edge.weight = parseInt(edge.weight);
+          edge.source = nodeHash[edge.source];
+          edge.target = nodeHash[edge.target];
+        });
+        
+        var linkForce = d3.forceLink();
+        
+        var simulation = d3.forceSimulation()
+          .force("charge", d3.forceManyBody().strength(-70))
+          .force("center", d3.forceCenter().x(300).y(400))
+          .force("link", linkForce)
+          .nodes(nodes)
+          .on("tick", forceTick);
+        
+        simulation.force("link").links(edges);
+        
+        d3.select("svg").selectAll("line.link")
+          .data(edges, d => `${d.source.id}-${d.target.id}`)
+          .enter()
+          .append("line")
+            .attr("class", "link")
+            .style("opacity", .5)
+            .style("stroke-width", d => d.weight);
+        
+        d3.selectAll("line").attr("marker-end", "url(#Triangle)");
+        
+        var nodeEnter = d3.select("svg").selectAll("g.node")
+          .data(nodes, d => d.id)
+          .enter()
+          .append("g")
+            .attr("class", "node");
+        nodeEnter.append("circle")
+            .attr("r", 5)
+            .style("fill", d => roleScale(d.role));
+        nodeEnter.append("text")
+            .style("text-anchor", "middle")
+            .attr("y", 15)
+            .text(d => d.id);
+        
+        function forceTick() {
+          d3.selectAll("line.link")
+              .attr("x1", d => d.source.x)
+              .attr("x2", d => d.target.x)
+              .attr("y1", d => d.source.y)
+              .attr("y2", d => d.target.y);
+          d3.selectAll("g.node")
+          	  .attr("transform", d => `translate(${d.x},${d.y})`);
+        }
+      }
+    </script>
+
+<!-- D3 code ended -->
+
+
+<!-- Footer -->
+<footer class="w3-container w3-padding-64 w3-center w3-opacity">  
+  <div class="w3-xlarge w3-padding-32">
+    <i class="fa fa-facebook-official w3-hover-opacity"></i>
+    <i class="fa fa-instagram w3-hover-opacity"></i>
+    <i class="fa fa-snapchat w3-hover-opacity"></i>
+    <i class="fa fa-pinterest-p w3-hover-opacity"></i>
+    <i class="fa fa-twitter w3-hover-opacity"></i>
+    <i class="fa fa-linkedin w3-hover-opacity"></i>
+ </div>
+ <p>Powered by <a href="https://www.w3schools.com/w3css/default.asp" target="_blank">maheshchhayani.com</a></p>
+</footer>
+
+<script>
+// Used to toggle the menu on small screens when clicking on the menu button
+function myFunction() {
+  var x = document.getElementById("navDemo");
+  if (x.className.indexOf("w3-show") == -1) {
+    x.className += " w3-show";
+  } else { 
+    x.className = x.className.replace(" w3-show", "");
+  }
+}
+</script>
+
+</body>
+</html>
+
